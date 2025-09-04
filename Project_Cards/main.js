@@ -1,9 +1,11 @@
 class Card {
 	#title;
 	#id;
+	#element;
 	constructor(title, id) {
 		this.#title = title;
 		this.#id = id;
+		this.#element = null;
 	}
 	get title() {
 		return this.#title;
@@ -23,12 +25,12 @@ class Card {
 		const collapseBtn = document.createElement("button");
 		collapseBtn.textContent = "collapse";
 		cardDiv.append(id, title, removeBtn, collapseBtn);
-		this.element = cardDiv;
+		this.#element = cardDiv;
 		return cardDiv;
 	}
 
 	remove() {
-		this.element.remove();
+		this.#element.remove();
 	}
 	toggleCollapse() {}
 }
@@ -73,23 +75,43 @@ class TodoCard extends Card {
 		super(title, id);
 		this.#tasks = tasks;
 	}
+	get tasks() {
+		return this.#tasks;
+	}
+	render() {
+		const cardDiv = super.render();
+
+		const ul = document.createElement("ul");
+		this.#tasks.forEach((task) => {
+			const li = document.createElement("li");
+
+			const checkbox = document.createElement("input");
+			checkbox.type = "checkbox";
+			const tasksinfo = document.createElement("p");
+			tasksinfo.textContent = task;
+
+			li.append(checkbox, tasksinfo);
+			ul.append(li);
+		});
+		cardDiv.append(ul);
+		return cardDiv;
+	}
 }
 
 const select = document.querySelector("select");
 const formCard = document.querySelector("#form-card");
 const createBtn = document.querySelector("#createBtn");
-select.onchange = () => {
-	formCard.innerHTML = "";
 
-	const value = select.value;
-	if (value == "Text-card") {
+class GenerateLayout {
+	static createTextCard(formCard) {
 		const textTitle = document.createElement("input");
 		textTitle.placeholder = "Add Title";
 		const textArea = document.createElement("textarea");
 		formCard.append(textTitle);
 		formCard.append(textArea);
+		createBtn.style.display = "flex";
 	}
-	if (value == "Image-card") {
+	static createImageCard(formCard) {
 		const textTitle = document.createElement("input");
 		textTitle.placeholder = "Add Title";
 		const imgInput = document.createElement("input");
@@ -97,8 +119,9 @@ select.onchange = () => {
 		imgInput.placeholder = "URL";
 		formCard.append(textTitle);
 		formCard.append(imgInput);
+		createBtn.style.display = "flex";
 	}
-	if (value == "Todo-card") {
+	static createTodoCard(formCard) {
 		const textTitle = document.createElement("input");
 		textTitle.placeholder = "Add Title";
 		const todoInput = document.createElement("input");
@@ -119,27 +142,85 @@ select.onchange = () => {
 		formCard.append(todoInput);
 		formCard.append(todoBtn);
 		formCard.append(todoList);
+		createBtn.style.display = "flex";
 	}
-};
-createBtn.onclick = () => {
+}
+
+select.onchange = () => {
+	formCard.innerHTML = "";
 	const value = select.value;
 
-	if (value == "Text-card") {
-		const title = formCard.querySelector("input").value;
-		const text = formCard.querySelector("textarea").value;
+	switch (value) {
+		case "Text-card":
+			GenerateLayout.createTextCard(formCard);
+			break;
 
-		const card = new Textcard(title, value, text);
-		const container = document.querySelector("#cards");
-		container.append(card.render());
-		console.log(text);
-	}
+		case "Image-card":
+			GenerateLayout.createImageCard(formCard);
+			break;
 
-	if (value == "Image-card") {
-		const title = formCard.querySelector("input").value;
-		const url = formCard.querySelector("input").value;
-
-		const card = new ImageCard(title, value, url);
-		const container = document.querySelector("#cards");
-		container.append(card.render());
+		case "Todo-card":
+			GenerateLayout.createTodoCard(formCard);
+			break;
 	}
 };
+
+createBtn.onclick = () => {
+	const value = select.value;
+	switch (value) {
+		case "Text-card": {
+			const title = formCard.querySelector("input").value;
+			const text = formCard.querySelector("textarea").value;
+
+			const card = new Textcard(title, value, text);
+			const container = document.querySelector("#cards");
+			container.append(card.render());
+			console.log(text);
+			formCard.querySelector("textarea").value = "";
+			formCard.querySelector("textarea").value = "";
+			break;
+		}
+
+		case "Image-card": {
+			const title = formCard.querySelector("input").value;
+			const url = formCard.querySelector("input").value;
+
+			const card = new ImageCard(title, value, url);
+			const container = document.querySelector("#cards");
+			container.append(card.render());
+			formCard
+				.querySelectorAll("input")
+				.forEach((input) => (input.value = ""));
+
+			break;
+		}
+		case "Todo-card": {
+			const title = formCard.querySelector("input").value;
+			const tasks = [];
+
+			formCard.querySelectorAll("ul li").forEach((li) => {
+				tasks.push(li.textContent);
+			});
+
+			const card = new TodoCard(title, value, tasks);
+			const container = document.querySelector("#cards");
+			container.append(card.render());
+			formCard
+				.querySelectorAll("input")
+				.forEach((input) => (input.value = ""));
+			formCard
+				.querySelectorAll("ul")
+				.forEach((ul) => (ul.innerHTML = ""));
+
+			break;
+		}
+	}
+};
+
+/*
+    1 - switch case 
+    2 - очищать инпуты 
+    3 - select type 
+    4 - кнопка создания только если выбран тип создания
+    5 - создать класс для генерации верстки
+*/

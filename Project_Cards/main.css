@@ -1,3 +1,6 @@
 .textarea {
 	display: flex;
 }
+#createBtn {
+	display: none;
+}
