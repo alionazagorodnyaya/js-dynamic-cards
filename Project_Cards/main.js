@@ -2,10 +2,13 @@ class Card {
 	#title;
 	#id;
 	#element;
+	#body;
+
 	constructor(title, id) {
 		this.#title = title;
 		this.#id = id;
 		this.#element = null;
+		this.#body = null;
 	}
 	get title() {
 		return this.#title;
@@ -13,8 +16,12 @@ class Card {
 	get id() {
 		return this.#id;
 	}
+	get body() {
+		return this.#body;
+	}
 	render() {
 		const cardDiv = document.createElement("div");
+		const header = document.createElement("div");
 		const title = document.createElement("h1");
 		const id = document.createElement("p");
 		id.textContent = this.id;
@@ -24,7 +31,12 @@ class Card {
 		removeBtn.onclick = () => this.remove();
 		const collapseBtn = document.createElement("button");
 		collapseBtn.textContent = "collapse";
-		cardDiv.append(id, title, removeBtn, collapseBtn);
+		collapseBtn.onclick = () => this.toggleCollapse();
+		header.append(id, removeBtn, collapseBtn);
+		const body = document.createElement("div");
+		body.append(title);
+		this.#body = body;
+		cardDiv.append(header, body);
 		this.#element = cardDiv;
 		return cardDiv;
 	}
@@ -32,7 +44,13 @@ class Card {
 	remove() {
 		this.#element.remove();
 	}
-	toggleCollapse() {}
+	toggleCollapse() {
+		if (this.body.style.display == "none") {
+			this.body.style.display = "flex";
+		} else {
+			this.body.style.display = "none";
+		}
+	}
 }
 class Textcard extends Card {
 	#text;
@@ -47,7 +65,7 @@ class Textcard extends Card {
 		const cardDiv = super.render();
 		const text = document.createElement("p");
 		text.textContent = this.text;
-		cardDiv.append(text);
+		this.body.append(text);
 		return cardDiv;
 	}
 }
@@ -64,7 +82,7 @@ class ImageCard extends Card {
 		const cardDiv = super.render();
 		const img = document.createElement("img");
 		img.src = this.url;
-		cardDiv.append(img);
+		this.body.append(img);
 		return cardDiv;
 	}
 }
@@ -93,7 +111,7 @@ class TodoCard extends Card {
 			li.append(checkbox, tasksinfo);
 			ul.append(li);
 		});
-		cardDiv.append(ul);
+		this.body.append(ul);
 		return cardDiv;
 	}
 }
@@ -149,6 +167,7 @@ class GenerateLayout {
 select.onchange = () => {
 	formCard.innerHTML = "";
 	const value = select.value;
+	createBtn.style.display = "none";
 
 	switch (value) {
 		case "Text-card":
@@ -176,7 +195,7 @@ createBtn.onclick = () => {
 			const container = document.querySelector("#cards");
 			container.append(card.render());
 			console.log(text);
-			formCard.querySelector("textarea").value = "";
+			formCard.querySelector("input").value = "";
 			formCard.querySelector("textarea").value = "";
 			break;
 		}
@@ -205,9 +224,7 @@ createBtn.onclick = () => {
 			const card = new TodoCard(title, value, tasks);
 			const container = document.querySelector("#cards");
 			container.append(card.render());
-			formCard
-				.querySelectorAll("input")
-				.forEach((input) => (input.value = ""));
+			formCard.querySelector("input").value = "";
 			formCard
 				.querySelectorAll("ul")
 				.forEach((ul) => (ul.innerHTML = ""));
@@ -218,9 +235,7 @@ createBtn.onclick = () => {
 };
 
 /*
-    1 - switch case 
-    2 - очищать инпуты 
-    3 - select type 
-    4 - кнопка создания только если выбран тип создания
-    5 - создать класс для генерации верстки
+	1 - кнопка создания только если выбран тип создания
+    2 - очищать инпуты закончить 
+	3 - Сделать сворачивание
 */
